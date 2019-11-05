@@ -8,7 +8,10 @@ app.use(userRouter)
 app.use(taskRouter)
 
 
+app.get('/', (req, res) => {
+res.send(`<h1>RUNNING AT PORT ${port}</h1>`)
+})
 
 app.listen(port, () => {
-    res.send(`<h1>Running At Port ${port}</h1>`)
+    console.log(`RUNNING AT PORT ${port}`)
 })  
