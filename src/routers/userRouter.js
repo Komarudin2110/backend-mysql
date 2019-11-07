@@ -17,7 +17,7 @@ const _storage = multer.diskStorage({
     },
     // Menentukan pola nama file 
     filename: function (req, file, cb) {
-        cb(null, "avatar-" + req.params.username + path.extname(file.originalname))
+        cb(null, Date.now() + "avatar-" + req.params.username + path.extname(file.originalname))
     }
 })
 
@@ -112,18 +112,26 @@ router.post('/usersv1', (req, res) => {
 
 // CREATE USER V2
 router.post('/users', (req, res) => {
-    let sql = `INSERT INTO users SET ?`
+    let sql = `SELECT username FROM users WHERE username = '${req.body.username}'`
+    let sql2 = `SELECT email FROM users WHERE email = '${req.body.email}'`
+    let sql3 = `INSERT INTO users SET ?`
     let data = req.body // { username, name, email, password }
-
     // Cek Format Email
+    if (!data.username || !data.name || !data.email || !data.password) return res.send({ error: "Isi semua form !" })
     if (!valid.isEmail(data.email)) return (res.send({ error: 'Format Email Salah !' }))
-    // Hash Password
-    data.password = bcryptjs.hashSync(data.password, 8)
-
-    conn.query(sql, data, (err, result) => {
-        if (err) return res.send(err)
-        sendVerification(data)
-        res.send({ success: 'Register Success !' })
+    conn.query(sql, (error, respo) => {
+        if (error) return res.send(err)
+        if (respo.length === 1) return res.send({ error: 'Username telah terpakai !' })
+        conn.query(sql2, (error, resp) => {
+            if (error) return res.send(error)
+            if (resp.length === 1) return res.send({ error: 'Email telah digunakan' })
+            data.password = bcryptjs.hashSync(data.password, 8)
+            conn.query(sql3, data, (error, result) => {
+                if (error) return res.send(error.message)
+                sendVerification(data)
+                res.send({ success: 'Register Success !' })
+            })
+        })
     })
 })
 
@@ -139,14 +147,29 @@ router.delete('/users/:userid', (req, res) => {
 })
 
 // UPDATE USER BY ID
-router.patch('/users/:userid', (req, res) => {
-    let sql = `UPDATE users SET ? WHERE id = ?`
-    if (req.body.password) req.body.password = bcryptjs.hashSync(req.body.password, 8)
-    let data = [req.body, req.params.userid]
+router.patch('/users/:username', upload.single('avatar'), (req, res) => {
+    let sql = `SELECT avatar FROM users WHERE username = '${req.params.username}'`
+    let sql2 = `UPDATE users SET ? WHERE username = ?`
+    let data = [req.body, req.params.username];
 
-    conn.query(sql, data, (err, resp) => {
-        if (err) return res.send(err)
-        res.send({ success: 'Data berhasil di update !' })
+    if (req.file) data[0].avatar = req.file.filename
+    if (!data[0].name || !data[0].email) return res.send({ error: "You cant update with empty data !" })
+    if (!valid.isEmail(data[0].email)) return (res.send({ error: 'Format Email Salah !' }))
+    if (data[0].password) data[0].password = bcryptjs.hashSync(data[0].password, 8)
+
+    // Hapus avatar sebelum nya 
+    conn.query(sql, (err, result) => {
+        if (err) res.send(err)
+        if (result[0].avatar) {
+            let nameAvatar = result[0].avatar
+            let imgPath = `${uploadDirectory}${nameAvatar}`
+            fs.unlinkSync(imgPath)
+        }
+        // Simpan nama avatar yang baru di upload
+        conn.query(sql2, data, (err, resp) => {
+            if (err) return res.send({ error: err.message })
+            res.send({ success: 'Data berhasil di update !' })
+        })
     })
 })
 
@@ -161,7 +184,7 @@ router.post('/users/login', (req, res) => {
         let hash = bcryptjs.compareSync(password, user.password)
         if (!hash) return res.send({ error: 'Wrong Password !' })
         if (!user.verified) return res.send({ error: 'Please Verification your Email !' })
-        res.send({ success: 'Login success' })
+        res.send({ user })
     })
 })
 
@@ -177,8 +200,8 @@ router.get('/verification/:username', (req, res) => {
 // READ PROFILE USER
 router.get('/users/profile/:username', (req, res) => {
     let sql = `SELECT * FROM users WHERE username = '${req.params.username}'`
-    conn.query(sql, (err, result) => {
-        if (err) return res.send({ error: err.message })
+    conn.query(sql, (error, result) => {
+        if (error) return res.send({ error: err.message })
         let user = result[0]
         if (!user) return res.send({ error: "User Not Found !" })
         res.send({

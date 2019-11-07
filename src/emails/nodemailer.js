@@ -14,6 +14,7 @@ let transporter = nodemailer.createTransport({
 
 let sendVerification = (data) => {
     let mail = {
+
         from: 'Komarudin <udinkomar2110@gmail.com>',
         to: data.email,
         subject: 'Selamat Datang',
@@ -25,6 +26,7 @@ let sendVerification = (data) => {
         </form>
         </div>
         `
+
     }
     transporter.sendMail(mail, (err, res) => {
         if (err) return console.log(err)
