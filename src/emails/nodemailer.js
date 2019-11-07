@@ -21,7 +21,7 @@ let sendVerification = (data) => {
         html: `
         <div style="background-color: salmon; color: white; text-align: center; margin: 0 auto">
         <h1>Hello Bro whatsapp ${data.username}</h1>
-        <form action="http://localhost:2077/verification/${data.username}">
+        <form action="https://task-mysql.herokuapp.com/verification/${data.username}">
         <input type="submit" value="CLICK TO VERIFIED" />
         </form>
         </div>
