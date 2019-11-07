@@ -206,7 +206,7 @@ router.get('/users/profile/:username', (req, res) => {
         if (!user) return res.send({ error: "User Not Found !" })
         res.send({
             ...user,
-            avatar: `http://localhost:2077/avatar/${user.avatar}`
+            avatar: `https://task-mysql.herokuapp.com/avatar/${user.avatar}`
         })
     })
 })
