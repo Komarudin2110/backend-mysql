@@ -6,7 +6,6 @@ const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
 const sendVerification = require('../emails/nodemailer.js')
-
 const uploadDirectory = path.join(__dirname, '/../../public/uploads/')
 
 // Menentukan dimana foto kan disimpan, dan bagaimana foto diberi nama 
