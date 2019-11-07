@@ -2,6 +2,8 @@ const express = require('express')
 const userRouter = require('./routers/userRouter')
 const taskRouter = require('./routers/tasksRouter')
 const cors = require('cors')
+const path = require('path')
+
 
 const app = express()
 const port = process.env.PORT || 2077
