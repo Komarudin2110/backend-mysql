@@ -13,7 +13,7 @@ app.use(express.json())
 app.use(userRouter)
 app.use(taskRouter)
 
-// app.use('/public', express.static('public'));
+app.use('/public', express.static('public'));
 // app.use(express.static(path.join(__dirname, '../public/uploads')));
 
 app.get('/', (req, res) => {
