@@ -38,8 +38,8 @@ const upload = multer({
 router.post('/avatar/:username', (req, res, next) => {
     // Mencari user bedasarkan name
     const sql = `SELECT * FROM users WHERE username = '${req.params.username}'`
-    conn.query(sql, (err, resp) => {
-        if (err) return res.send({ error: err.message })
+    conn.query(sql, (error, resp) => {
+        if (error) return res.send({ error: err.message })
         let user = resp[0]
         if (!user) return res.send({ error: 'User Not Found !' })
         req.user = user
@@ -118,6 +118,7 @@ router.post('/users', (req, res) => {
     // Cek Format Email
     if (!data.username || !data.name || !data.email || !data.password) return res.send({ error: "Isi semua form !" })
     if (!valid.isEmail(data.email)) return (res.send({ error: 'Format Email Salah !' }))
+    
     conn.query(sql, (error, respo) => {
         if (error) return res.send(err)
         if (respo.length === 1) return res.send({ error: 'Username telah terpakai !' })
@@ -204,7 +205,7 @@ router.get('/users/profile/:username', (req, res) => {
         let user = result[0]
         if (!user) return res.send({ error: "User Not Found !" })
         res.send({
-            ...user,
+            ...user,    
             avatar: `https://task-mysql.herokuapp.com/avatar/${user.avatar}`
         })
     })
